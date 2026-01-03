@@ -1,0 +1,7 @@
+laptops.balewgize.app {
+    reverse_proxy user-ui:8501
+}
+
+laptops-admin.balewgize.app {
+    reverse_proxy admin-ui:8502
+}

@@ -1,0 +1,48 @@
+services:
+  bot:
+    build: .
+    container_name: addislaptop-bot
+    restart: always
+    env_file: .env
+    command: python -m core.bot
+    volumes:
+      - ./data:/app/data
+      - ./laptop_scraper_session.session:/app/laptop_scraper_session.session
+
+  user-ui:
+    build: .
+    container_name: addislaptop-user
+    restart: always
+    env_file: .env
+    command: streamlit run app/user.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+
+  admin-ui:
+    build: .
+    container_name: addislaptop-admin
+    restart: always
+    env_file: .env
+    command: streamlit run app/admin.py --server.port=8502 --server.address=0.0.0.0 --server.headless=true
+    ports:
+      - "8502:8502"
+    volumes:
+      - ./data:/app/data
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: addislaptop-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
