@@ -17,6 +17,7 @@ from .config import get_settings, setup_logging
 from .database import Database
 from .recommender import LLMRecommender
 from .schemas import RecommendationRequest
+from .utils import format_source_link, format_phone_link
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +131,7 @@ Example: _"Programming laptop under 100,000 ETB"_
 
         budget_label = f"{budget:,} ETB" if budget > 0 else "No limit"
 
+        # TODO: show rotating progress text until results are ready
         await query.edit_message_text(
             f"🔍 Finding the best laptops...\n\n"
             f"Use case: {use_case.title()}\n"
@@ -162,7 +164,9 @@ Example: _"Programming laptop under 100,000 ETB"_
             return
 
         message = await self._format_recommendations(response)
-        await query.edit_message_text(message, parse_mode="Markdown")
+        await query.edit_message_text(
+            message, parse_mode="Markdown", disable_web_page_preview=True
+        )
 
     async def _format_recommendations(self, response) -> str:
         """Format recommendation response for Telegram."""
@@ -217,12 +221,16 @@ Example: _"Programming laptop under 100,000 ETB"_
             message += f"\n🎯 _{rec.verdict}_\n"
             message += f"👤 **{rec.best_for}**\n"
 
-            # Contact
+            # Contact (clickable phone - works on mobile)
             if laptop.contact:
-                message += f"\n📞 Contact: `{laptop.contact}`"
+                display, tel_link = format_phone_link(laptop.contact)
+                message += f"\n📞 Contact: [{display}]({tel_link})\n"
 
-            channel_name = laptop.channel.split("/")[-1]
-            message += f"\n📢 Source: @{channel_name}\n"
+            # Source link (clickable)
+            channel_name, source_link = format_source_link(
+                laptop.channel, laptop.message_id
+            )
+            message += f"\nSource: [@{channel_name}]({source_link})\n"
 
             message += "\n━━━━━━━━━━━━━━━━━━━━\n\n"
 
@@ -256,11 +264,24 @@ Example: _"Programming laptop under 100,000 ETB"_
             message += f"   💰 {price_str}"
             if specs_str:
                 message += f" • {specs_str}"
+
+            channel_name = laptop.channel.rstrip("/").split("/")[-1]
+            source_link = f"https://t.me/{channel_name}/{laptop.message_id}"
+            message += f"\n    [View]({source_link})"
+
+            if laptop.contact:
+                display, tel_link = format_phone_link(laptop.contact)
+                message += f" • 📞 `{display}`"
+                # message += f" • 📞 [{display}]({tel_link})"
             message += "\n\n"
 
         message += "_Use /find for personalized recommendations!_"
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+        await update.message.reply_text(
+            message,
+            parse_mode="Markdown",
+            disable_web_page_preview=True,  # Prevents link previews cluttering the message
+        )
 
     async def search(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /search command."""
@@ -320,8 +341,14 @@ Example: _"Programming laptop under 100,000 ETB"_
 
             if laptop.ram_gb:
                 message += f" • {laptop.ram_gb}GB RAM"
+
+            channel_name = laptop.channel.rstrip("/").split("/")[-1]
+            source_link = f"https://t.me/{channel_name}/{laptop.message_id}"
+            message += f"\n    [View]({source_link})"
+
             if laptop.contact:
-                message += f"\n   📞 `{laptop.contact}`"
+                display, tel_link = format_phone_link(laptop.contact)
+                message += f" • 📞 [{display}]({tel_link})"
             message += "\n\n"
 
         if len(laptops) > 10:
@@ -329,7 +356,9 @@ Example: _"Programming laptop under 100,000 ETB"_
 
         message += "_Use /find for personalized recommendations!_"
 
-        await update.message.reply_text(message, parse_mode="Markdown")
+        await update.message.reply_text(
+            message, parse_mode="Markdown", disable_web_page_preview=True
+        )
 
     async def _search_by_brand_callback(self, query, brand: str):
         """Search laptops by brand (callback version)."""
@@ -353,8 +382,14 @@ Example: _"Programming laptop under 100,000 ETB"_
 
             if laptop.ram_gb:
                 message += f" • {laptop.ram_gb}GB RAM"
+
+            channel_name = laptop.channel.rstrip("/").split("/")[-1]
+            source_link = f"https://t.me/{channel_name}/{laptop.message_id}"
+            message += f"\n    [View]({source_link})"
             if laptop.contact:
-                message += f"\n   📞 `{laptop.contact}`"
+                display, tel_link = format_phone_link(laptop.contact)
+                message += f" • 📞 [{display}]({tel_link})"
+
             message += "\n\n"
 
         if len(laptops) > 10:
@@ -362,7 +397,9 @@ Example: _"Programming laptop under 100,000 ETB"_
 
         message += "_Use /find for personalized recommendations!_"
 
-        await query.edit_message_text(message, parse_mode="Markdown")
+        await query.edit_message_text(
+            message, parse_mode="Markdown", disable_web_page_preview=True
+        )
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle free-form messages with natural language."""
@@ -444,7 +481,9 @@ Example: _"Programming laptop under 100,000 ETB"_
             return
 
         message = await self._format_recommendations(response)
-        await update.message.reply_text(message, parse_mode="Markdown")
+        await update.message.reply_text(
+            message, parse_mode="Markdown", disable_web_page_preview=True
+        )
 
     def run(self):
         """Run the bot."""
