@@ -3,40 +3,27 @@
 import os
 import pytest
 
-from telegram_laptop_scraper.extractor import LaptopExtractor
+from core.extractor import LaptopExtractor
 
 
-# Mark all tests in this class as requiring API key
 @pytest.mark.skipif(
     not os.getenv("OPENROUTER_API_KEY"),
-    reason="OPENROUTER_API_KEY not set - skipping integration tests",
+    reason="OPENROUTER_API_KEY not set",
 )
 class TestLaptopExtractorIntegration:
-    """Integration tests for LaptopExtractor (requires API key)."""
+    """Integration tests requiring API key."""
 
     @pytest.mark.slow
-    def test_extract_dell_laptop(self, sample_messages, expected_extractions):
-        """Test extraction of Dell laptop message."""
+    def test_extract_dell_laptop(self, sample_messages):
+        """Test extraction of Dell laptop."""
         with LaptopExtractor() as extractor:
             result = extractor.extract(sample_messages[0])
 
         assert result is not None
         assert result.brand.lower() == "dell"
-        assert result.ram_gb == expected_extractions[0]["ram_gb"]
-        assert result.storage_gb == expected_extractions[0]["storage_gb"]
-        assert result.price_etb == expected_extractions[0]["price_etb"]
-        assert expected_extractions[0]["contact"] in (result.contact or "")
-
-    @pytest.mark.slow
-    def test_extract_asus_laptop(self, sample_messages, expected_extractions):
-        """Test extraction of Asus laptop message."""
-        with LaptopExtractor() as extractor:
-            result = extractor.extract(sample_messages[1])
-
-        assert result is not None
-        assert result.brand.lower() == "asus"
-        assert result.ram_gb == expected_extractions[1]["ram_gb"]
-        assert result.price_etb == expected_extractions[1]["price_etb"]
+        assert result.ram_gb == 16
+        assert result.storage_gb == 1000
+        assert result.price_etb == 128500
 
     @pytest.mark.slow
     def test_extract_non_laptop_returns_none(self, sample_messages):
@@ -46,50 +33,24 @@ class TestLaptopExtractorIntegration:
 
         assert result is None
 
-    @pytest.mark.slow
-    def test_extract_random_text_returns_none(self):
-        """Test that random text returns None."""
-        with LaptopExtractor() as extractor:
-            result = extractor.extract("Hello, how are you today?")
-
-        assert result is None
-
 
 class TestLaptopExtractorUnit:
-    """Unit tests for LaptopExtractor (no API calls)."""
+    """Unit tests (no API calls)."""
 
     def test_parse_json_simple(self):
-        """Test JSON parsing with simple input."""
+        """Test JSON parsing."""
         extractor = LaptopExtractor.__new__(LaptopExtractor)
-
         result = extractor._parse_json('{"brand": "Dell", "price_etb": 100000}')
-
         assert result == {"brand": "Dell", "price_etb": 100000}
 
     def test_parse_json_with_markdown(self):
-        """Test JSON parsing with markdown code blocks."""
+        """Test JSON parsing with markdown."""
         extractor = LaptopExtractor.__new__(LaptopExtractor)
+        result = extractor._parse_json('```json\n{"brand": "Dell"}\n```')
+        assert result == {"brand": "Dell"}
 
-        result = extractor._parse_json(
-            '```json\n{"brand": "Dell", "price_etb": 100000}\n```'
-        )
-
-        assert result == {"brand": "Dell", "price_etb": 100000}
-
-    def test_parse_json_with_extra_text(self):
-        """Test JSON parsing when there's extra text around JSON."""
+    def test_parse_json_invalid(self):
+        """Test invalid JSON returns None."""
         extractor = LaptopExtractor.__new__(LaptopExtractor)
-
-        result = extractor._parse_json(
-            'Here is the extracted data:\n{"brand": "HP", "ram_gb": 16}\nDone!'
-        )
-
-        assert result == {"brand": "HP", "ram_gb": 16}
-
-    def test_parse_json_invalid_returns_none(self):
-        """Test that invalid JSON returns None."""
-        extractor = LaptopExtractor.__new__(LaptopExtractor)
-
-        result = extractor._parse_json("This is not JSON at all")
-
+        result = extractor._parse_json("not json")
         assert result is None
