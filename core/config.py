@@ -48,7 +48,10 @@ def get_settings() -> Settings:
 
 
 def setup_logging(level: str | None = None) -> logging.Logger:
-    """Configure logging for the application."""
+    """Configure logging for the application (console + file)."""
+    from pathlib import Path
+    from logging.handlers import RotatingFileHandler
+
     log_level = level or get_settings().log_level
 
     formatter = logging.Formatter(
@@ -56,13 +59,28 @@ def setup_logging(level: str | None = None) -> logging.Logger:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
 
-    logger = logging.getLogger("telegram_laptop_scraper")
+    # File handler (rotating: 5MB max, keep 5 backups)
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+
+    file_handler = RotatingFileHandler(
+        filename=log_dir / "app.log",
+        maxBytes=5 * 1024 * 1024,  # 5 MB
+        backupCount=5,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(formatter)
+
+    # Configure logger
+    logger = logging.getLogger("core")
     logger.setLevel(getattr(logging, log_level.upper()))
     logger.handlers = []
     logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
     # Reduce noise from libraries
     logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -70,5 +88,7 @@ def setup_logging(level: str | None = None) -> logging.Logger:
     logging.getLogger("telethon").setLevel(logging.WARNING)
     logging.getLogger("telegram").setLevel(logging.WARNING)
 
-    logger.info(f"Logging configured at {log_level} level")
+    logger.info(
+        f"Logging configured at {log_level} level (file: {log_dir / 'app.log'})"
+    )
     return logger
