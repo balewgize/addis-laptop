@@ -127,7 +127,7 @@ with tab1:
                     st.markdown(f"📢 Channel: [@{channel_name}]({laptop.channel})")
                     st.markdown(f"🔗 [View Original Post]({source_link})")
 
-                with st.expander("📝 Original Message", expanded=False):
+                if st.checkbox("📝 Show Original Message", key=f"raw_{laptop.id}"):
                     st.code(laptop.raw_text)
 
                 # Track view
