@@ -41,7 +41,8 @@ Return JSON with these fields:
 - gpu (string or null): Graphics card
 - price_etb (number or null): Price in Ethiopian Birr
 - condition (string or null): "new", "used", or "refurbished"
-- contact (string or null): Phone number or contact info
+- battery_life (string or null): Battery life as "N hrs" (e.g., "8 hrs"). Number only, no "+" or ranges.
+- contact (string or null): Phone number or contact info (if multiple, take first one)
 
 JSON only, no explanation:"""
 

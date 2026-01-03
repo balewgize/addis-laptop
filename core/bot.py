@@ -204,6 +204,8 @@ Example: _"Programming laptop under 100,000 ETB"_
                 specs.append(f'🖥 {laptop.screen_size}"')
             if laptop.gpu:
                 specs.append(f"🎮 {laptop.gpu}")
+            if laptop.battery_life: 
+                specs.append(f"🔋 {laptop.battery_life}")
 
             if specs:
                 message += "\n".join(specs) + "\n\n"

@@ -38,6 +38,7 @@ class LaptopCreate(BaseModel):
     screen_size: float | None = None
     gpu: str | None = None
     price_etb: float | None = None
+    battery_life: str | None = None
     condition: str | None = None
     contact: str | None = None
 

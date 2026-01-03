@@ -7,6 +7,7 @@ from core.config import setup_logging
 from core.database import Database
 from core.recommender import LLMRecommender
 from core.schemas import RecommendationRequest, SearchFilters
+from core.utils import format_source_link, format_phone_link
 
 # Setup
 logger = setup_logging()
@@ -29,7 +30,7 @@ def get_recommender() -> LLMRecommender:
 
 
 # Header
-st.title("💻 Laptop Finder Ethiopia")
+st.title("💻 Addis Laptop")
 st.caption("Find the best laptop deals from Ethiopian Telegram channels")
 
 # Stats
@@ -112,11 +113,19 @@ with tab1:
 
                 with col2:
                     st.markdown("**Details**")
+                    st.write(f"🔋 Battery: {laptop.battery_life or 'N/A'}")
                     st.write(f"📦 Condition: {laptop.condition or 'N/A'}")
-                    st.write(f"📞 Contact: {laptop.contact or 'N/A'}")
+                    if laptop.contact:
+                        display, tel_link = format_phone_link(laptop.contact)
+                        st.write(f"📞 Contact: [{display}]({tel_link})")
+                    else:
+                        st.write("📞 Contact: N/A")
                     st.write(f"📅 Posted: {laptop.posted_at.strftime('%Y-%m-%d')}")
-                    channel_name = laptop.channel.split("/")[-1]
-                    st.write(f"📢 Channel: @{channel_name}")
+                    channel_name, source_link = format_source_link(
+                        laptop.channel, laptop.message_id
+                    )
+                    st.markdown(f"📢 Channel: [@{channel_name}]({laptop.channel})")
+                    st.markdown(f"🔗 [View Original Post]({source_link})")
 
                 with st.expander("📝 Original Message", expanded=False):
                     st.code(laptop.raw_text)
@@ -228,6 +237,8 @@ with tab2:
                             specs_md += f'- 🖥️ **Screen:** {laptop.screen_size}"\n'
                         if laptop.gpu:
                             specs_md += f"- 🎮 **GPU:** {laptop.gpu}\n"
+                        if laptop.battery_life:
+                            specs_md += f"- 🔋 **Battery:** {laptop.battery_life}\n"
 
                         st.markdown(specs_md)
 
@@ -283,6 +294,7 @@ with tab3:
                     "GPU": l.gpu,
                     "Price (ETB)": l.price_etb,
                     "Condition": l.condition,
+                    "Battery": l.battery_life,
                     "Contact": l.contact,
                     "Posted": l.posted_at.strftime("%Y-%m-%d"),
                     "Channel": l.channel.split("/")[-1],

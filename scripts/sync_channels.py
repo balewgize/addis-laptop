@@ -28,7 +28,7 @@ logger = setup_logging()
 async def sync_channel(
     channel: str,
     min_id: int,
-    limit: int = 200,
+    limit: int = 100,
 ) -> SyncResult:
     """Sync a single channel."""
     db = Database()

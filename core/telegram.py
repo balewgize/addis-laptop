@@ -110,6 +110,7 @@ class TelegramFetcher:
             screen_size=extracted.screen_size,
             gpu=extracted.gpu,
             price_etb=extracted.price_etb,
+            battery_life=extracted.battery_life,
             condition=extracted.condition,
             contact=extracted.contact,
             channel=channel,

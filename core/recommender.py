@@ -199,6 +199,7 @@ class LLMRecommender:
                 "gpu": laptop.gpu,
                 "price_etb": laptop.price_etb,
                 "condition": laptop.condition,
+                "battery_life": laptop.battery_life,
                 "posted_date": laptop.posted_at.strftime("%Y-%m-%d"),
                 "channel": laptop.channel.split("/")[-1],
             }

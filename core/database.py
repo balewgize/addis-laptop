@@ -42,6 +42,7 @@ class LaptopModel(SQLModel, table=True):
     # Pricing & condition
     price_etb: float | None = Field(default=None, index=True)
     condition: str | None = None
+    battery_life: str | None = None
     contact: str | None = None
 
     # Source tracking
@@ -466,6 +467,7 @@ class Database:
             screen_size=model.screen_size,
             gpu=model.gpu,
             price_etb=model.price_etb,
+            battery_life=model.battery_life,
             condition=model.condition,
             contact=model.contact,
             channel=model.channel,

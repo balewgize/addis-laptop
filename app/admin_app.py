@@ -344,11 +344,7 @@ with tab2:
 
         with col1:
             sync_limit = st.slider(
-                "Messages to fetch",
-                min_value=50,
-                max_value=500,
-                value=200,
-                step=50,
+                "Messages to fetch", min_value=20, max_value=400, value=100, step=20
             )
 
         with col2:
