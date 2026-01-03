@@ -3,25 +3,19 @@
 import pytest
 from datetime import datetime
 
-from telegram_laptop_scraper.database import Database
-from telegram_laptop_scraper.recommender import Recommender
-from telegram_laptop_scraper.schemas import Laptop, RecommendationQuery
+from core.database import Database
+from core.recommender import LLMRecommender
+from core.schemas import Laptop, RecommendationRequest
 
 
 class TestRecommender:
-    """Tests for Recommender class."""
+    """Tests for LLMRecommender."""
 
     @pytest.fixture
-    def db(self, temp_database, monkeypatch):
-        """Create a test database with sample data."""
-        monkeypatch.setenv("DATABASE_PATH", temp_database)
-        from telegram_laptop_scraper.config import get_settings
-
-        get_settings.cache_clear()
-
+    def db_with_data(self, mock_settings):
+        """Create database with test data."""
         db = Database()
 
-        # Add sample laptops
         laptops = [
             Laptop(
                 brand="Dell",
@@ -62,67 +56,41 @@ class TestRecommender:
         ]
 
         for laptop in laptops:
-            db.add(laptop)
+            db.add_laptop(laptop)
 
         return db
 
-    @pytest.fixture
-    def recommender(self, db):
-        """Create a recommender with test database."""
-        return Recommender(db)
+    def test_get_candidates(self, db_with_data):
+        """Test candidate filtering."""
+        recommender = LLMRecommender(db_with_data)
 
-    def test_recommend_by_budget(self, recommender):
-        """Test budget filtering."""
-        query = RecommendationQuery(budget_max=60000)
-        results = recommender.recommend(query)
+        request = RecommendationRequest(budget_max=100000)
+        candidates = recommender._get_candidates(request)
 
-        assert len(results) == 1
-        assert results[0].brand == "Dell"
-        assert results[0].model == "Budget"
+        assert len(candidates) == 2
+        assert all(l.price_etb <= 100000 for l in candidates)
 
-    def test_recommend_by_ram(self, recommender):
-        """Test RAM filtering."""
-        query = RecommendationQuery(min_ram=16)
-        results = recommender.recommend(query)
+    def test_format_requirements(self, db_with_data):
+        """Test requirements formatting."""
+        recommender = LLMRecommender(db_with_data)
 
-        assert len(results) == 2
-        assert all(r.ram_gb >= 16 for r in results)
-
-    def test_recommend_by_use_case(self, recommender):
-        """Test use case profiles."""
-        # Programming: needs 16GB RAM, 256GB storage
-        query = RecommendationQuery(use_case="programming")
-        results = recommender.recommend(query)
-
-        assert len(results) == 2
-        assert all(r.ram_gb >= 16 for r in results)
-
-    def test_recommend_by_brand(self, recommender):
-        """Test brand filtering."""
-        query = RecommendationQuery(brand="Dell")
-        results = recommender.recommend(query)
-
-        assert len(results) == 2
-        assert all(r.brand == "Dell" for r in results)
-
-    def test_recommend_combined_filters(self, recommender):
-        """Test combining multiple filters."""
-        query = RecommendationQuery(
+        request = RecommendationRequest(
             budget_max=100000,
-            min_ram=16,
-            brand="Dell",
+            use_case="programming",
         )
-        results = recommender.recommend(query)
+        formatted = recommender._format_requirements(request)
 
-        assert len(results) == 1
-        assert results[0].model == "Mid-range"
+        assert "100,000" in formatted
+        assert "programming" in formatted
 
-    def test_recommend_no_results(self, recommender):
-        """Test when no laptops match criteria."""
-        query = RecommendationQuery(
-            budget_max=10000,  # Too low
-            min_ram=64,  # Too high
-        )
-        results = recommender.recommend(query)
+    def test_fallback_recommendations(self, db_with_data):
+        """Test fallback when LLM fails."""
+        recommender = LLMRecommender(db_with_data)
 
-        assert len(results) == 0
+        request = RecommendationRequest(budget_max=100000)
+        candidates = recommender._get_candidates(request)
+
+        response = recommender._fallback_recommendations(candidates, request, 3)
+
+        assert len(response.recommendations) <= 3
+        assert response.query_summary

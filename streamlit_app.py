@@ -7,16 +7,16 @@ from datetime import datetime
 import streamlit as st
 import pandas as pd
 
-from telegram_laptop_scraper.config import setup_logging, get_settings
-from telegram_laptop_scraper.database import Database
-from telegram_laptop_scraper.extractor import LaptopExtractor
-from telegram_laptop_scraper.recommender import Recommender
-from telegram_laptop_scraper.schemas import (
+from core.config import setup_logging, get_settings
+from core.database import Database
+from core.extractor import LaptopExtractor
+from core.recommender import Recommender
+from core.schemas import (
     RecommendationQuery,
     SearchFilters,
     SyncResult,
 )
-from telegram_laptop_scraper.telegram import TelegramFetcher
+from core.telegram import TelegramFetcher
 
 logger = setup_logging()
 
