@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
 
     openrouter_api_key: str
-    llm_model: str = "anthropic/claude-sonnet-4"
+    llm_model: str = "anthropic/claude-haiku-4.5"
 
     database_path: str = "data/laptops.db"
 
