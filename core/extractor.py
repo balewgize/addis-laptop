@@ -17,7 +17,6 @@ Extract structured laptop data from messages. Key context:
 - "Generation" refers to Intel/AMD CPU generations
 - Storage: Convert 1TB to 1000, 512GB to 512
 - "Brand new" or "New arrival" = condition: "new"
-- Extract phone numbers as contact info (format: 09xxxxxxxx or +251xxxxxxxxx)
 
 Return valid JSON matching the schema. Use null for missing/unclear fields.
 Do NOT guess or make up values - only extract what's explicitly stated.
@@ -42,7 +41,6 @@ Return JSON with these fields:
 - price_etb (number or null): Price in Ethiopian Birr
 - condition (string or null): "new", "used", or "refurbished"
 - battery_life (string or null): Battery life as "N hrs" (e.g., "8 hrs"). Number only, no "+" or ranges.
-- contact (string or null): Phone number or contact info (if multiple, take first one)
 
 JSON only, no explanation:"""
 
@@ -114,12 +112,12 @@ class LaptopExtractor:
             return laptop
 
         except httpx.HTTPStatusError as e:
-            logger.error(
+            logger.exception(
                 f"OpenRouter API error: {e.response.status_code} - {e.response.text}"
             )
             return None
         except Exception as e:
-            logger.error(f"Extraction failed: {type(e).__name__}: {e}")
+            logger.exception(f"Extraction failed: {type(e).__name__}: {e}")
             return None
 
     def _parse_json(self, content: str) -> dict | None:
