@@ -217,4 +217,4 @@ __marimo__/
 
 .venv/
 *.session
-data/laptops.db
+data/*
