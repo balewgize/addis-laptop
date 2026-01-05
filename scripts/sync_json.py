@@ -108,7 +108,7 @@ def sync_json_file(json_path: Path, dry_run: bool = False) -> SyncResult:
                 logger.info(f"Extracted: {extracted.brand} {extracted.model or ''}")
 
             except Exception as e:
-                logger.exception(f"Failed to process message {message.id}: {e}")
+                logger.exception(f"Failed to process message {message.id}")
                 errors += 1
 
     if dry_run:
@@ -166,7 +166,7 @@ def sync_all_exports() -> list[SyncResult]:
             result = sync_json_file(json_path)
             results.append(result)
         except Exception as e:
-            logger.error(f"Failed to sync {json_path}: {e}")
+            logger.exception(f"Failed to sync {json_path}")
 
     # Summary
     total_laptops = sum(r.laptops_extracted for r in results)

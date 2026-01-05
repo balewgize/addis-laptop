@@ -73,7 +73,6 @@ class LaptopRecommendation(BaseModel):
     rank: int
     pros: list[str]
     cons: list[str]
-    verdict: str
     best_for: str
 
 

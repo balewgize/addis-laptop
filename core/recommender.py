@@ -14,6 +14,7 @@ from .schemas import (
     RecommendationResponse,
     SearchFilters,
 )
+from .utils import parse_json_from_llm
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,6 @@ For each recommendation, provide:
 - laptop_id (from the data)
 - pros (list of 1-3 strengths relevant to user's needs)
 - cons (list of 1-3 weaknesses or concerns)
-- verdict (concise one sentence summary why this laptop fits)
 - best_for (who should buy this, e.g., "Best for students", "Best value")
 
 Also provide:
@@ -61,7 +61,6 @@ Return JSON in this exact format:
             "laptop_id": 123,
             "pros": ["...", "..."],
             "cons": ["..."],
-            "verdict": "...",
             "best_for": "..."
         }}
     ]
@@ -230,35 +229,13 @@ class LLMRecommender:
             content = data["choices"][0]["message"]["content"]
             logger.debug(f"LLM response: {content[:500]}...")
 
-            return self._parse_llm_response(content)
+            return parse_json_from_llm(content)
 
         except httpx.HTTPStatusError as e:
             logger.exception(f"OpenRouter API error: {e.response.status_code}")
             return None
         except Exception as e:
             logger.exception(f"LLM call failed: {e}")
-            return None
-
-    def _parse_llm_response(self, content: str) -> dict | None:
-        """Parse JSON from LLM response."""
-        content = content.strip()
-
-        if content.startswith("```"):
-            lines = content.split("\n")
-            lines = [line for line in lines if not line.startswith("```")]
-            content = "\n".join(lines)
-
-        try:
-            return json.loads(content)
-        except json.JSONDecodeError:
-            start = content.find("{")
-            end = content.rfind("}") + 1
-            if start != -1 and end > start:
-                try:
-                    return json.loads(content[start:end])
-                except json.JSONDecodeError:
-                    logger.error(f"Failed to parse LLM JSON: {content[:200]}...")
-                    return None
             return None
 
     def _build_response(
@@ -284,7 +261,6 @@ class LLMRecommender:
                     rank=rec.get("rank", len(recommendations) + 1),
                     pros=rec.get("pros", []),
                     cons=rec.get("cons", []),
-                    verdict=rec.get("verdict", ""),
                     best_for=rec.get("best_for", ""),
                 )
             )
@@ -325,7 +301,6 @@ class LLMRecommender:
                 rank=i + 1,
                 pros=["Matches your criteria"],
                 cons=["Unable to generate detailed analysis"],
-                verdict=f"{laptop.brand} {laptop.model or 'laptop'}",
                 best_for="General use",
             )
             for i, laptop in enumerate(sorted_laptops)

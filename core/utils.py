@@ -1,5 +1,44 @@
 """Utility functions"""
 
+import json
+
+
+def parse_json_from_llm(content: str) -> dict | None:
+    """
+    Parse JSON from LLM response.
+
+    Handles:
+    - Raw JSON
+    - JSON wrapped in markdown code blocks
+    - JSON embedded in other text
+
+    Args:
+        content: Raw LLM response text
+
+    Returns:
+        Parsed dict or None if parsing fails
+    """
+    content = content.strip()
+
+    # Remove markdown code blocks
+    if content.startswith("```"):
+        lines = content.split("\n")
+        lines = [line for line in lines if not line.startswith("```")]
+        content = "\n".join(lines)
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        # Try to extract JSON object from text
+        start = content.find("{")
+        end = content.rfind("}") + 1
+        if start != -1 and end > start:
+            try:
+                return json.loads(content[start:end])
+            except json.JSONDecodeError:
+                return None
+        return None
+
 
 def format_source_link(channel: str, message_id: int) -> tuple[str, str]:
     """

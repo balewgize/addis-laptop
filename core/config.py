@@ -76,7 +76,7 @@ def setup_logging(level: str | None = None) -> logging.Logger:
     file_handler.setFormatter(formatter)
 
     # Configure logger
-    logger = logging.getLogger("core")
+    logger = logging.getLogger()
     logger.setLevel(getattr(logging, log_level.upper()))
     logger.handlers = []
     logger.addHandler(console_handler)

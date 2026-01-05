@@ -7,6 +7,7 @@ import httpx
 
 from .config import Settings, get_settings
 from .schemas import LaptopCreate
+from .utils import parse_json_from_llm
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +89,7 @@ class LaptopExtractor:
             content = data["choices"][0]["message"]["content"]
             logger.debug(f"LLM response: {content[:200]}...")
 
-            parsed = self._parse_json(content)
+            parsed = parse_json_from_llm(content)
             if not parsed:
                 logger.warning("Failed to parse JSON from LLM response")
                 return None
@@ -118,28 +119,6 @@ class LaptopExtractor:
             return None
         except Exception as e:
             logger.exception(f"Extraction failed: {type(e).__name__}: {e}")
-            return None
-
-    def _parse_json(self, content: str) -> dict | None:
-        """Parse JSON from LLM response."""
-        content = content.strip()
-
-        if content.startswith("```"):
-            lines = content.split("\n")
-            lines = [line for line in lines if not line.startswith("```")]
-            content = "\n".join(lines)
-
-        try:
-            return json.loads(content)
-        except json.JSONDecodeError:
-            start = content.find("{")
-            end = content.rfind("}") + 1
-            if start != -1 and end > start:
-                try:
-                    return json.loads(content[start:end])
-                except json.JSONDecodeError:
-                    logger.warning(f"Could not parse JSON: {content[:100]}...")
-                    return None
             return None
 
     def close(self):

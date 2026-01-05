@@ -88,7 +88,7 @@ class TelegramFetcher:
                 "username": getattr(entity, "username", None),
             }
         except Exception as e:
-            logger.error(f"Failed to get channel info for {channel}: {e}")
+            logger.exception("Failed to get channel info for {channel}")
             return None
 
     async def fetch_messages(
@@ -131,7 +131,7 @@ class TelegramFetcher:
             await asyncio.sleep(e.seconds)
             return []
         except Exception as e:
-            logger.error(f"Failed to fetch from {channel}: {type(e).__name__}: {e}")
+            logger.exception(f"Failed to fetch from {channel}")
             return []
 
     def fetch_messages_json(
