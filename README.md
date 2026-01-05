@@ -1,4 +1,3 @@
-```markdown
 # Addis Laptop
 
 Find the best laptop deals from Ethiopian Telegram channels.
@@ -11,6 +10,17 @@ A Telegram bot that scrapes laptop listings from Ethiopian tech channels, extrac
 - **Search** - Filter by brand, price, RAM, screen size
 - **AI Recommendations** - Get personalized suggestions based on use case and budget
 - **Natural Language** - Just type what you're looking for: "Dell laptop under 100k"
+
+## Live Demo
+
+- Telegram Bot: [@AddisLaptopBot](https://t.me/AddisLaptopBot)
+- Web App: [https://laptops.balewgize.app/](https://laptops.balewgize.app/)
+
+## Screenshots
+
+| Browse | Search | Recommend |
+|--------|--------|-----------|
+| <img src="screenshots/browse.jpg" width="250" /> | <img src="screenshots/search.jpg" width="250" /> | <img src="screenshots/recommend.jpg" width="250" /> |
 
 ## Quick Start
 
