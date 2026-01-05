@@ -13,7 +13,7 @@ A Telegram bot that scrapes laptop listings from Ethiopian tech channels, extrac
 
 ## Architecture
 
-See [architecture.md](architecture.md) for system design.
+<a href="https://github.com/balewgize/addis-laptop/blob/main/screenshots/architecture.png">View architecture diagram</a>
 
 ## Live Demo
 
