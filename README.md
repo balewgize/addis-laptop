@@ -11,6 +11,10 @@ A Telegram bot that scrapes laptop listings from Ethiopian tech channels, extrac
 - **AI Recommendations** - Get personalized suggestions based on use case and budget
 - **Natural Language** - Just type what you're looking for: "Dell laptop under 100k"
 
+## Architecture
+
+See [architecture.md](architecture.md) for system design.
+
 ## Live Demo
 
 - Telegram Bot: [@AddisLaptopBot](https://t.me/AddisLaptopBot)
