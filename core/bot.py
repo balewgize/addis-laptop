@@ -25,6 +25,7 @@ from .schemas import (
     RecommendationRequest,
     SearchFilters,
 )
+from .utils import format_source_link, format_phone_link
 
 logger = logging.getLogger(__name__)
 
@@ -256,14 +257,18 @@ def format_laptop_short(laptop: LaptopDB, index: int) -> str:
     if laptop.ram_gb:
         specs.append(f"{laptop.ram_gb}GB")
     if laptop.storage_gb:
-        specs.append(f"{laptop.storage_gb}GB")
+        if laptop.storage_gb >= 1000:
+            specs.append(f"{laptop.storage_gb//1000}TB")
+        else:
+            specs.append(f"{laptop.storage_gb}GB")
     if laptop.screen_size:
         specs.append(f'{laptop.screen_size}"')
     specs_str = " • ".join(specs)
 
     model = (laptop.model or "")[:20]
-    # TODO: make brand clickable to source
-    line = f"{index}. **{laptop.brand}** {model}\n"
+    channel, source_link = format_source_link(laptop.channel, laptop.message_id)
+    # line = f"{index}. **{laptop.brand}** {model}\n"
+    line = f"{index}. [{laptop.brand} {model}]({source_link})\n"
     line += f"   💰 {price_str}"
     if specs_str:
         line += f" | {specs_str}"
@@ -319,7 +324,7 @@ class LaptopBot:
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
         welcome = """
-🔍 **Addis Laptop Bot**
+🔍 **Addis Laptop**
 
 Find the best laptop deals from Ethiopian Telegram channels!
 
@@ -365,7 +370,10 @@ Examples:
         keyboard = build_pagination_keyboard(state, "browse")
 
         await update.message.reply_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
+            message,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
         )
 
     async def browse_pagination(
@@ -394,7 +402,10 @@ Examples:
         keyboard = build_pagination_keyboard(state, "browse")
 
         await query.edit_message_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
+            message,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
         )
 
     def _format_browse_message(
@@ -592,7 +603,10 @@ Examples:
         keyboard = build_pagination_keyboard(state, "search")
 
         await query.edit_message_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
+            message,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
         )
 
     async def search_pagination(
@@ -624,7 +638,10 @@ Examples:
         keyboard = build_pagination_keyboard(state, "search")
 
         await query.edit_message_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
+            message,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
         )
 
     def _format_search_message(
@@ -642,6 +659,7 @@ Examples:
         ]
         for i, laptop in enumerate(laptops, start=start):
             lines.append(format_laptop_short(laptop, i))
+        lines.append("\nUse /search to search again.")
 
         return "\n".join(lines)
 
@@ -786,7 +804,7 @@ Examples:
         summary = self._recommend_summary(filters)
 
         await query.edit_message_text(
-            f"🎯 **Get AI Recommendations**\n\n{summary}\n\n🤖 Analyzing...",
+            f"🎯 **Get AI Recommendations**\n\n{summary}\n\n🤖 Finding the best laptops...",
             parse_mode="Markdown",
         )
 
@@ -811,54 +829,82 @@ Examples:
             )
             return
 
-        message = f"🎯 **{response.query_summary}**\n\n"
+        message = await self._format_recommendations(response)
+        await query.edit_message_text(
+            message, parse_mode="Markdown", disable_web_page_preview=True
+        )
+
+    async def _format_recommendations(self, response) -> str:
+        """Format recommendation response for Telegram."""
+        message = f"📋 **{response.query_summary}**\n\n"
 
         if response.market_insight:
             message += f"💡 _{response.market_insight}_\n\n"
 
+        message += "━━━━━━━━━━━━━━━━━━━━\n\n"
+
         for rec in response.recommendations:
             laptop = rec.laptop
-            price_str = f"{laptop.price_etb:,.0f} ETB" if laptop.price_etb else "Call"
-
+            price_str = (
+                f"{laptop.price_etb:,.0f} ETB" if laptop.price_etb else "Call for price"
+            )
+            # Header
             message += f"**#{rec.rank} {laptop.brand} {laptop.model or ''}**\n"
-            message += f"💰 {price_str}\n"
+            message += f"💰 {price_str}\n\n"
 
+            # Specs
             specs = []
+            if laptop.cpu:
+                specs.append(f"🔲 {laptop.cpu}")
             if laptop.ram_gb:
-                specs.append(f"{laptop.ram_gb}GB RAM")
+                specs.append(f"🧠 {laptop.ram_gb}GB RAM")
             if laptop.storage_gb:
-                specs.append(f"{laptop.storage_gb}GB")
+                storage = f"💾 {laptop.storage_gb}GB"
+                if laptop.storage_type:
+                    storage += f" {laptop.storage_type}"
+                specs.append(storage)
             if laptop.screen_size:
-                specs.append(f'{laptop.screen_size}"')
-            if specs:
-                message += f"⚙️ {' • '.join(specs)}\n"
+                specs.append(f'🖥 {laptop.screen_size}"')
+            if laptop.gpu:
+                specs.append(f"🎮 {laptop.gpu}")
+            if laptop.battery_life:
+                specs.append(f"🔋 {laptop.battery_life}")
 
-            # message += f"\n✅ **Pros:** {', '.join(rec.pros)}\n"
-            # message += f"⚠️ **Cons:** {', '.join(rec.cons)}\n"
+            if specs:
+                message += "\n".join(specs) + "\n\n"
 
             # Pros & Cons
             message += "✅ **Pros:**\n"
             for pro in rec.pros[:3]:
                 message += f"  • {pro}\n"
-            # message += f"\n✅ **Pros:** {', '.join(rec.pros)}\n"
-            # message += f"⚠️ **Cons:** {', '.join(rec.cons)}\n"
+
             message += "\n⚠️ **Cons:**\n"
             for con in rec.cons[:2]:
                 message += f"  • {con}\n"
 
-            # message += f"📝 _{rec.verdict}_\n"
-            message += f"👤 {rec.best_for}\n"
+            # Verdict
+            message += f"\n👤 **{rec.best_for}**\n"
 
+            # Contact (clickable phone - works on mobile)
             if laptop.contact:
-                message += f"📞 `{laptop.contact}`\n"
+                display, tel_link = format_phone_link(laptop.contact)
+                message += f"\n📞 [{display}]({tel_link})\n"
 
-            channel_name = laptop.channel.split("/")[-1]
-            message += f"📢 @{channel_name}\n"
-            message += "\n" + "─" * 25 + "\n\n"
+            # Source link (clickable)
+            channel_name, source_link = format_source_link(
+                laptop.channel, laptop.message_id
+            )
+            message += f"\nSource: [@{channel_name}]({source_link})\n"
 
-        message += "Use /recommend for more options!"
+            message += "\n━━━━━━━━━━━━━━━━━━━━\n\n"
 
-        await query.edit_message_text(message, parse_mode="Markdown")
+        message += (
+            "⚠️ **Disclaimer:** AI recommendations are a starting point, always "
+            "verify specs, read reviews, and compare prices before purchasing.\n\n"
+        )
+        message += "Use /recommend to search again!"
+
+        return message
 
     def _recommend_summary(self, filters: dict) -> str:
         """Format recommendation summary."""
