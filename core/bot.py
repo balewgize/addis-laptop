@@ -332,6 +332,7 @@ Find the best laptop deals from Ethiopian Telegram channels!
 /browse - Browse latest laptops
 /search - Search with filters
 /recommend - Get AI recommendations
+/cancel - Cancel current operation
 /help - Show this message
 
 **Quick Search:**
@@ -447,7 +448,7 @@ Examples:
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await update.message.reply_text(
-            "🔍 **Search Laptops**\n\nSelect brand:",
+            "🔍 **Search Laptops**\n\n" "Select brand:\n\n" "_Type /cancel to exit_",
             parse_mode="Markdown",
             reply_markup=reply_markup,
         )
@@ -676,13 +677,6 @@ Examples:
             parts.append(f"✅ {filters['min_screen']}\"+ screen")
         return " ".join(parts)
 
-    async def search_cancel(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        """Cancel search."""
-        await update.message.reply_text("Cancelled. Use /search to start again.")
-        return ConversationHandler.END
-
     # -------------------------------------------------------------------------
     # Recommend Command
     # -------------------------------------------------------------------------
@@ -717,7 +711,9 @@ Examples:
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await update.message.reply_text(
-            "🎯 **Get AI Recommendations**\n\nWhat will you mainly use the laptop for?",
+            "🎯 **Get AI Recommendations**\n\n"
+            "What will you mainly use the laptop for?\n\n"
+            "_Type /cancel to exit_",
             parse_mode="Markdown",
             reply_markup=reply_markup,
         )
@@ -919,13 +915,6 @@ Examples:
             parts.append(f"✅ {filters['min_screen']}\"+ screen")
         return "\n".join(parts)
 
-    async def recommend_cancel(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> int:
-        """Cancel recommendation."""
-        await update.message.reply_text("Cancelled. Use /recommend to start again.")
-        return ConversationHandler.END
-
     # -------------------------------------------------------------------------
     # Natural Language Handler
     # -------------------------------------------------------------------------
@@ -986,11 +975,15 @@ Examples:
         ]
         for i, laptop in enumerate(page_laptops, start=1):
             lines.append(format_laptop_short(laptop, i))
+        lines.append("\nUse /search to search again.")
 
         keyboard = build_pagination_keyboard(state, "search")
 
         await update.message.reply_text(
-            "\n".join(lines), parse_mode="Markdown", reply_markup=keyboard
+            "\n".join(lines),
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
         )
 
     async def _nl_recommend(
@@ -1010,43 +1003,10 @@ Examples:
             )
             return
 
-        message = f"🎯 **{response.query_summary}**\n\n"
-
-        if response.market_insight:
-            message += f"💡 _{response.market_insight}_\n\n"
-
-        for rec in response.recommendations:
-            laptop = rec.laptop
-            price_str = f"{laptop.price_etb:,.0f} ETB" if laptop.price_etb else "Call"
-
-            message += f"**#{rec.rank} {laptop.brand} {laptop.model or ''}**\n"
-            message += f"💰 {price_str}\n"
-
-            specs = []
-            if laptop.ram_gb:
-                specs.append(f"{laptop.ram_gb}GB RAM")
-            if laptop.storage_gb:
-                specs.append(f"{laptop.storage_gb}GB")
-            if laptop.screen_size:
-                specs.append(f'{laptop.screen_size}"')
-            if specs:
-                message += f"⚙️ {' • '.join(specs)}\n"
-
-            message += f"\n✅ **Pros:** {', '.join(rec.pros)}\n"
-            message += f"⚠️ **Cons:** {', '.join(rec.cons)}\n"
-            message += f"📝 _{rec.verdict}_\n"
-            message += f"👤 {rec.best_for}\n"
-
-            if laptop.contact:
-                message += f"📞 `{laptop.contact}`\n"
-
-            channel_name = laptop.channel.split("/")[-1]
-            message += f"📢 @{channel_name}\n"
-            message += "\n" + "─" * 25 + "\n\n"
-
-        message += "Use /recommend for more!"
-
-        await update.message.reply_text(message, parse_mode="Markdown")
+        message = await self._format_recommendations(response)
+        await update.message.reply_text(
+            message, parse_mode="Markdown", disable_web_page_preview=True
+        )
 
     # -------------------------------------------------------------------------
     # Noop Handler
@@ -1060,12 +1020,56 @@ Examples:
     # Run
     # -------------------------------------------------------------------------
 
+    async def cancel_conversation(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        """Cancel any conversation and return to main menu."""
+        # Clear conversation state
+        context.user_data.pop("search_filters", None)
+        context.user_data.pop("recommend_filters", None)
+        context.user_data.pop("pagination", None)
+        context.user_data.pop("search_results", None)
+
+        await update.message.reply_text(
+            "Cancelled.\n\nUse /browse, /search, or /recommend to start again."
+        )
+        return ConversationHandler.END
+
+    async def handle_unexpected_text(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        """Handle unexpected text during conversation — exit and process as natural language."""
+        # Clear conversation state
+        context.user_data.pop("search_filters", None)
+        context.user_data.pop("recommend_filters", None)
+
+        # Inform user briefly
+        await update.message.reply_text("↩️ Exiting current flow...")
+
+        # Process as natural language search
+        await self.handle_message(update, context)
+
+        return ConversationHandler.END
+
     def run(self):
         """Run the bot."""
         if not self.settings.telegram_bot_token:
             raise ValueError("TELEGRAM_BOT_TOKEN not set")
 
         app = Application.builder().token(self.settings.telegram_bot_token).build()
+
+        # Shared fallbacks for all conversations
+        # Handles: commands mid-flow + unexpected text
+        shared_fallbacks = [
+            CommandHandler("cancel", self.cancel_conversation),
+            CommandHandler("help", self.help_command),
+            CommandHandler("search", self.search_start),
+            CommandHandler("recommend", self.recommend_start),
+            CommandHandler("browse", self.browse),
+            MessageHandler(
+                filters.TEXT & ~filters.COMMAND, self.handle_unexpected_text
+            ),
+        ]
 
         # Search conversation
         search_conv = ConversationHandler(
@@ -1084,7 +1088,7 @@ Examples:
                     CallbackQueryHandler(self.search_screen, pattern="^sscreen:")
                 ],
             },
-            fallbacks=[CommandHandler("cancel", self.search_cancel)],
+            fallbacks=shared_fallbacks,
             per_message=False,
         )
 
@@ -1102,18 +1106,20 @@ Examples:
                     CallbackQueryHandler(self.recommend_screen, pattern="^rscreen:")
                 ],
             },
-            fallbacks=[CommandHandler("cancel", self.recommend_cancel)],
+            fallbacks=shared_fallbacks,
             per_message=False,
         )
 
-        # Register handlers
+        # 1. Basic commands
         app.add_handler(CommandHandler("start", self.start))
         app.add_handler(CommandHandler("help", self.help_command))
         app.add_handler(CommandHandler("browse", self.browse))
+
+        # 2. Conversation handlers (before standalone callbacks)
         app.add_handler(search_conv)
         app.add_handler(recommend_conv)
 
-        # Pagination
+        # 3. Pagination callbacks (outside conversations)
         app.add_handler(
             CallbackQueryHandler(self.browse_pagination, pattern="^browse:")
         )
@@ -1121,10 +1127,10 @@ Examples:
             CallbackQueryHandler(self.search_pagination, pattern="^search:")
         )
 
-        # Noop
+        # 4. Noop callback (disabled buttons)
         app.add_handler(CallbackQueryHandler(self.handle_noop, pattern="^noop$"))
 
-        # Natural language (last)
+        # 5. Natural language handler (must be last)
         app.add_handler(
             MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message)
         )
@@ -1142,7 +1148,12 @@ def run_bot():
     """Entry point for running the bot."""
     setup_logging()
     bot = LaptopBot()
-    bot.run()
+    try:
+        bot.run()
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
+    finally:
+        bot.close()
 
 
 if __name__ == "__main__":
