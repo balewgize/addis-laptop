@@ -1,95 +1,108 @@
-# Laptop Addis
+```markdown
+# Addis Laptop
 
-Extract structured laptop specifications from Ethiopian Telegram e-commerce channels using LLMs.
+Find the best laptop deals from Ethiopian Telegram channels.
+
+A Telegram bot that scrapes laptop listings from Ethiopian tech channels, extracts specs using LLM, and provides intelligent search and AI-powered recommendations.
 
 ## Features
 
-- 🔍 Scrapes laptop listings from multiple Telegram channels
-- 🤖 Uses LLMs (via OpenRouter) to extract structured data
-- 💡 AI-powered recommendations with pros/cons analysis
-- 📊 Admin dashboard for channel management
-- 🤖 Telegram bot interface
-- 📈 Analytics (views, clicks) for monetization
+- **Browse** - View latest laptop listings with pagination
+- **Search** - Filter by brand, price, RAM, screen size
+- **AI Recommendations** - Get personalized suggestions based on use case and budget
+- **Natural Language** - Just type what you're looking for: "Dell laptop under 100k"
 
 ## Quick Start
 
-### 1. Install
+### Prerequisites
+
+- Python 3.11+
+- Telegram API credentials ([my.telegram.org](https://my.telegram.org))
+- Telegram Bot token ([@BotFather](https://t.me/BotFather))
+- OpenRouter API key ([openrouter.ai](https://openrouter.ai))
+
+### Installation
 
 ```bash
-git clone https://github.com/balewgize/telegram-laptop-scraper.git
-cd telegram-laptop-scraper
+git clone https://github.com/balewgize/addis-laptop.git
+cd addis-laptop
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### 2. Configure
-
-```bash
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your credentials
 ```
 
-### 3. Get API Credentials
-
-**Telegram API:** https://my.telegram.org
-**Telegram Bot:** https://t.me/BotFather
-**OpenRouter:** https://openrouter.ai
-
-### 4. Run
+### Configuration
 
 ```bash
-# Public website (view only)
-streamlit run app/user_app.py
-
-# Admin dashboard
-streamlit run app/admin_app.py
-
-# Telegram bot
-python -m core.bot
-
-# Scheduled sync
-python scripts/sync_channels.py
+# .env
+TELEGRAM_API_ID=your_api_id
+TELEGRAM_API_HASH=your_api_hash
+TELEGRAM_BOT_TOKEN=your_bot_token
+OPENROUTER_API_KEY=your_openrouter_key
 ```
 
-## Running Tests
+### Run
 
 ```bash
-# Install dev dependencies
-pip install -e ".[dev]"
+# Sync channels (scrape laptop listings)
+python -m scripts.sync_channels
 
-# Run all tests
-pytest
+# Scrape manually from exported JSON (to avoid account ban)
+# Export messages from Telegram Desktop (JSON format)
+# Place the JSON file in the data/exports directory
+# Filename must be channel username without @ symbol
+# e.g. data/exports/username.json
+python -m scripts.scrape_json
 
-# Run with verbose output
-pytest -v
+# Run Streamlit app (optional)
+streamlit run app/user.py
 
-# Skip slow tests (API calls)
-pytest -m "not slow"
-
-# Run specific test
-pytest tests/test_database.py -v
+# Start the bot
+python -m bot.core
 ```
 
 ## Project Structure
 
 ```
-telegram-laptop-scraper/
-├── core/  # Core package
-│   ├── config.py            # Settings
-│   ├── schemas.py           # Data models
-│   ├── telegram.py          # Telegram client
-│   ├── extractor.py         # LLM extraction
-│   ├── database.py          # SQLite operations
-│   ├── recommender.py       # AI recommendations
-│   └── bot.py               # Telegram bot
-├── app/
-│   ├── user_app.py          # Public Streamlit
-│   └── admin_app.py         # Admin dashboard
-├── scripts/
-│   └── sync_channels.py     # Scheduled sync
-└── tests/                   # Test suite
+├── bot/                  # Telegram bot
+│   ├── core.py          # Bot entry point
+│   ├── handlers/        # Command & message handlers
+│   ├── parser.py        # NL query parser
+│   └── utils/           # Formatting, keyboards, pagination
+├── core/                 # Core modules
+│   ├── database.py      # SQLite operations
+│   ├── extractor.py     # LLM spec extraction
+│   ├── recommender.py   # AI recommendations
+│   ├── schemas.py       # Data models
+│   └── telegram.py      # Channel scraper
+├── scripts/             # CLI utilities
+│   └── sync_channels.py # Scrape channels
+└── data/
+    └── laptops.db       # SQLite database
 ```
+
+## Bot Commands
+
+| Command | Description |
+|---------|-------------|
+| `/start` | Welcome message |
+| `/browse` | Browse latest laptops |
+| `/search` | Guided search with filters |
+| `/recommend` | AI-powered recommendations |
+| `/cancel` | Cancel current operation |
+| `/help` | Show help |
+
+Or just type naturally: *"Gaming laptop with 16GB RAM under 150k"*
+
+## Tech Stack
+
+- **Bot Framework**: python-telegram-bot
+- **Scraping**: Telethon
+- **Database**: SQLite + SQLModel
+- **LLM**: Claude via OpenRouter
+- **Validation**: Pydantic
 
 ## License
 
