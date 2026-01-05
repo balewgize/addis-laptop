@@ -150,7 +150,7 @@ def list_json_exports(exports_dir: str = "data/exports") -> list[Path]:
     return json_files
 
 
-def sync_all_exports() -> list[SyncResult]:
+def sync_all_exports(dry_run: bool = False) -> list[SyncResult]:
     """Sync all JSON exports in the exports directory."""
     json_files = list_json_exports(str(EXPORTS_DIR))
 
@@ -163,7 +163,7 @@ def sync_all_exports() -> list[SyncResult]:
     results = []
     for json_path in json_files:
         try:
-            result = sync_json_file(json_path)
+            result = sync_json_file(json_path, dry_run)
             results.append(result)
         except Exception as e:
             logger.exception(f"Failed to sync {json_path}")
