@@ -4,7 +4,7 @@ services:
     container_name: addislaptop-bot
     restart: always
     env_file: .env
-    command: python -m core.bot
+    command: python -m bot.core
     volumes:
       - ./data:/app/data
       - ./laptop_scraper_session.session:/app/laptop_scraper_session.session
