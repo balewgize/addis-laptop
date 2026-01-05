@@ -81,7 +81,9 @@ class RecommendationRequest(BaseModel):
     """User's recommendation request."""
 
     budget_max: float | None = None
-    budget_min: float | None = None
+    # budget_min: float | None = None
+    min_ram: int | None = None
+    min_screen: float | None = None
     use_case: str | None = None
     priorities: list[str] = Field(default_factory=list)
     brand_preference: str | None = None
@@ -133,9 +135,10 @@ class SearchFilters(BaseModel):
     """Filters for laptop search."""
 
     brand: str | None = None
-    min_price: float | None = None
+    # min_price: float | None = None
     max_price: float | None = None
     min_ram: int | None = None
+    min_screen: float | None = None
     min_storage: int | None = None
     condition: str | None = None
     channel: str | None = None

@@ -42,7 +42,7 @@ Analyze these laptops and recommend the TOP 3 best matches.
 For each recommendation, provide:
 - rank (1, 2, or 3)
 - laptop_id (from the data)
-- pros (list of 2-4 strengths relevant to user's needs)
+- pros (list of 1-3 strengths relevant to user's needs)
 - cons (list of 1-3 weaknesses or concerns)
 - verdict (concise one sentence summary why this laptop fits)
 - best_for (who should buy this, e.g., "Best for students", "Best value")
@@ -130,8 +130,10 @@ class LLMRecommender:
         """Get candidate laptops from database."""
         filters = SearchFilters(
             brand=request.brand_preference,
-            min_price=request.budget_min,
+            # min_price=request.budget_min,
             max_price=request.budget_max,
+            min_ram=request.min_ram,
+            min_screen=request.min_screen,
             posted_within_days=90,
         )
 
@@ -159,14 +161,7 @@ class LLMRecommender:
         parts = []
 
         if request.budget_max:
-            if request.budget_min:
-                parts.append(
-                    f"Budget: {request.budget_min:,.0f} - {request.budget_max:,.0f} ETB"
-                )
-            else:
-                parts.append(f"Budget: Up to {request.budget_max:,.0f} ETB")
-        elif request.budget_min:
-            parts.append(f"Budget: At least {request.budget_min:,.0f} ETB")
+            parts.append(f"Budget: Up to {request.budget_max:,.0f} ETB")
 
         if request.use_case:
             parts.append(f"Use case: {request.use_case}")
@@ -238,10 +233,10 @@ class LLMRecommender:
             return self._parse_llm_response(content)
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"OpenRouter API error: {e.response.status_code}")
+            logger.exception(f"OpenRouter API error: {e.response.status_code}")
             return None
         except Exception as e:
-            logger.error(f"LLM call failed: {e}")
+            logger.exception(f"LLM call failed: {e}")
             return None
 
     def _parse_llm_response(self, content: str) -> dict | None:

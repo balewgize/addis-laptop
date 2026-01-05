@@ -36,7 +36,7 @@ class LaptopModel(SQLModel, table=True):
     ram_gb: int | None = Field(default=None, index=True)
     storage_gb: int | None = Field(default=None, index=True)
     storage_type: str | None = None
-    screen_size: float | None = None
+    screen_size: float | None = Field(default=None, index=True)
     gpu: str | None = None
 
     # Pricing & condition
@@ -152,12 +152,14 @@ class Database:
                 statement = statement.where(
                     LaptopModel.brand.ilike(f"%{filters.brand}%")
                 )
-            if filters.min_price is not None:
-                statement = statement.where(LaptopModel.price_etb >= filters.min_price)
             if filters.max_price is not None:
                 statement = statement.where(LaptopModel.price_etb <= filters.max_price)
             if filters.min_ram is not None:
                 statement = statement.where(LaptopModel.ram_gb >= filters.min_ram)
+            if filters.min_screen is not None:
+                statement = statement.where(
+                    LaptopModel.screen_size >= filters.min_screen
+                )
             if filters.min_storage is not None:
                 statement = statement.where(
                     LaptopModel.storage_gb >= filters.min_storage
@@ -237,6 +239,21 @@ class Database:
                 LaptopModel.is_active == True,
             )
             return session.exec(statement).one()
+
+    # ==================== Bot Compatibility Aliases ====================
+
+    def count(self, active_only: bool = True) -> int:
+        """Alias for count_laptops() - used by bot."""
+        return self.count_laptops(active_only=active_only)
+
+    def get_all(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        active_only: bool = True,
+    ) -> list[LaptopDB]:
+        """Alias for get_laptops() - used by bot."""
+        return self.get_laptops(limit=limit, offset=offset, active_only=active_only)
 
     # ==================== Channel Operations ====================
 
