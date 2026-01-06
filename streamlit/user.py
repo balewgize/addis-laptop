@@ -41,7 +41,7 @@ col1, col2, col3, col4 = st.columns(4)
 col1.metric("Total Laptops", stats.total_laptops)
 col2.metric("Channels", stats.total_channels)
 col3.metric("New This Week", stats.laptops_last_7_days)
-col4.metric("Total Views", stats.total_views)
+# col4.metric("Total Views", stats.total_views)
 
 st.divider()
 
@@ -165,9 +165,17 @@ with tab2:
         )
 
     with col2:
-        brand_pref = st.text_input(
+        brand_pref = st.selectbox(
             "🏷️ Preferred Brand (optional)",
-            placeholder="Dell, HP, Asus...",
+            options=[
+                ("Any Brand", "any"),
+                ("Dell", "dell"),
+                ("HP", "hp"),
+                ("Leonovo", "lenovo"),
+                ("Asus", "asus"),
+                ("Acer", "acer"),
+            ],
+            format_func=lambda x: x[0],
         )
 
         priorities = st.multiselect(
@@ -186,7 +194,7 @@ with tab2:
             request = RecommendationRequest(
                 budget_max=budget if budget > 0 else None,
                 use_case=use_case[1],
-                brand_preference=brand_pref if brand_pref else None,
+                brand_preference=brand_pref[1] if brand_pref[1] != "any" else None,
                 priorities=[p.lower() for p in priorities],
             )
 
@@ -263,7 +271,6 @@ with tab2:
                             st.markdown(f"- {con}")
 
                     # Verdict
-                    st.info(f"🎯 **Verdict:** {rec.verdict}")
                     st.success(f"👤 **{rec.best_for}**")
 
                     # Track view
