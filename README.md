@@ -1,8 +1,8 @@
 # Addis Laptop
 
-Find the best laptop deals from Ethiopian Telegram channels.
+Find the best laptop deals from Telegram channels.
 
-A Telegram bot that scrapes laptop listings from Ethiopian tech channels, extracts specs using LLM, and provides intelligent search and AI-powered recommendations.
+A Telegram bot that scrapes laptop listings from tech channels, extracts specs using LLM, and provides intelligent search and AI-powered recommendations.
 
 ## Features
 
@@ -60,22 +60,49 @@ OPENROUTER_API_KEY=your_openrouter_key
 ### Run
 
 ```bash
-# Sync channels (scrape laptop listings)
-python -m scripts.sync_channels
-
+# Recommended
 # Scrape manually from exported JSON (to avoid account ban)
 # Export messages from Telegram Desktop (JSON format)
 # Place the JSON file in the data/exports directory
 # Filename must be channel username without @ symbol
 # e.g. data/exports/username.json
-python -m scripts.scrape_json
+python -m scripts.sync_json
 
-# Run Streamlit app (optional)
-streamlit run app/user.py
+# Sync channels (scrape laptop listings)
+# It will require you to login to your Telegram account
+# WARNING: This may get your account banned if used frequently
+python -m scripts.sync_channels
 
 # Start the bot
 python -m bot.core
+
+# Run Streamlit user app
+streamlit run streamlit/user.py
+
+# Run Streamlit admin app
+streamlit run streamlit/admin.py
 ```
+
+### Run with Docker (prod)
+
+```bash
+docker compose build
+
+docker compose up -d
+
+# Note: Caddy is required for HTTPS.
+```
+
+### Run with Docker (local)
+
+```bash
+docker compose -f docker-compose-local.yml build
+
+docker compose -f docker-compose-local.yml up -d
+
+# Note: Caddy not working locally (will be fixed).
+```
+
 
 ## Project Structure
 
