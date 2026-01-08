@@ -14,7 +14,7 @@ services:
     container_name: addislaptop-user
     restart: always
     env_file: .env
-    command: streamlit run app/user.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+    command: streamlit run streamlit/user.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
     expose:
       - "8501"
     volumes:
@@ -25,7 +25,7 @@ services:
     container_name: addislaptop-admin
     restart: always
     env_file: .env
-    command: streamlit run app/admin.py --server.port=8502 --server.address=0.0.0.0 --server.headless=true
+    command: streamlit run streamlit/admin.py --server.port=8502 --server.address=0.0.0.0 --server.headless=true
     expose:
       - "8502"
     volumes:
