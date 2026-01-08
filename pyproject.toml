@@ -9,4 +9,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["core*", "bot*", "streamlit*", "scripts*"]
+include = ["core*", "bot*", "web*", "scripts*"]
