@@ -32,6 +32,7 @@ https://github.com/user-attachments/assets/7d06cf95-c7d7-4792-986c-a3d1bade1ffa
 - Telegram API credentials ([my.telegram.org](https://my.telegram.org))
 - Telegram Bot token ([@BotFather](https://t.me/BotFather))
 - OpenRouter API key ([openrouter.ai](https://openrouter.ai))
+- Docker
 
 ### Installation
 
@@ -55,10 +56,10 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 OPENROUTER_API_KEY=your_openrouter_key
 ```
 
-### Run
+### Data Extraction
 
 ```bash
-# Recommended
+# Option 1: From Telegram exports (recommended)
 # Scrape manually from exported JSON (to avoid account ban)
 # Export messages from Telegram Desktop (JSON format)
 # Place the JSON file in the data/exports directory
@@ -66,40 +67,42 @@ OPENROUTER_API_KEY=your_openrouter_key
 # e.g. data/exports/username.json
 python -m scripts.sync_json
 
-# Sync channels (scrape laptop listings)
-# It will require you to login to your Telegram account
+# Option 2: Using Telethong Sync channels (scrape laptop listings)
+# Note: It will require you to login to your Telegram account
 # WARNING: This may get your account banned if used frequently
 python -m scripts.sync_channels
-
-# Start the bot
-python -m bot.core
-
-# Run Streamlit user app
-streamlit run streamlit/user.py
-
-# Run Streamlit admin app
-streamlit run streamlit/admin.py
-```
-
-### Run with Docker (prod)
-
-```bash
-docker compose build
-
-docker compose up -d
-
-# Note: Caddy is required for HTTPS.
 ```
 
 ### Run with Docker (local)
 
 ```bash
-docker compose -f docker-compose-local.yml build
-
-docker compose -f docker-compose-local.yml up -d
-
-# Note: Caddy not working locally (will be fixed).
+docker compose -f docker-compose-local.yml up --build
 ```
+
+### Run with Docker (prod)
+
+```bash
+docker compose up -d --build
+```
+
+### Run each service alone (optional)
+
+```bash
+# Start the bot
+# python -m bot.core
+
+# # Run Streamlit user app
+# streamlit run web/user.py
+
+# # Run Streamlit admin app
+# streamlit run web/admin.py
+```
+
+### Accessing 
+
+- Telegram Bot: [@your_bot_user_name](https://t.me/your_bot_user_name)
+- Web User: [http://localhost:8501/](http://localhost:8501/)
+- Web Admin: [http://localhost:8502/](http://localhost:8502/)
 
 
 ## Project Structure
