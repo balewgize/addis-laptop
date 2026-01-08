@@ -20,11 +20,9 @@ A Telegram bot that scrapes laptop listings from tech channels, extracts specs u
 - Telegram Bot: [@AddisLaptopBot](https://t.me/AddisLaptopBot)
 - Web App: [https://laptops.balewgize.app/](https://laptops.balewgize.app/)
 
-## Screenshots
+## Video
 
-| Browse | Search | Recommend |
-|--------|--------|-----------|
-| <img src="screenshots/browse.jpg" width="250" /> | <img src="screenshots/search.jpg" width="250" /> | <img src="screenshots/recommend.jpg" width="250" /> |
+https://github.com/user-attachments/assets/7d06cf95-c7d7-4792-986c-a3d1bade1ffa
 
 ## Quick Start
 
