@@ -1,0 +1,7 @@
+:8501 {
+    reverse_proxy user-ui:8501
+}
+
+:8502 {
+    reverse_proxy admin-ui:8502
+}

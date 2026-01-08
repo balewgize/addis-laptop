@@ -1,8 +1,7 @@
 services:
   bot:
     build: .
-    container_name: addislaptop-bot
-    restart: always
+    container_name: addislaptop-bot-local
     env_file: .env
     command: python -m bot.core
     volumes:
@@ -11,8 +10,7 @@ services:
 
   user-ui:
     build: .
-    container_name: addislaptop-user
-    restart: always
+    container_name: addislaptop-user-local
     env_file: .env
     command: streamlit run web/user.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
     expose:
@@ -22,8 +20,7 @@ services:
 
   admin-ui:
     build: .
-    container_name: addislaptop-admin
-    restart: always
+    container_name: addislaptop-admin-local
     env_file: .env
     command: streamlit run web/admin.py --server.port=8502 --server.address=0.0.0.0 --server.headless=true
     expose:
@@ -33,16 +30,9 @@ services:
 
   caddy:
     image: caddy:2-alpine
-    container_name: addislaptop-caddy
-    restart: always
+    container_name: addislaptop-caddy-local
     ports:
-      - "80:80"
-      - "443:443"
+      - "8501:8501"
+      - "8502:8502"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-
-volumes:
-  caddy_data:
-  caddy_config:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile
