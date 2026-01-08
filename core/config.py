@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
 
     openrouter_api_key: str
-    llm_model: str = "anthropic/claude-haiku-4.5"
+    llm_model: str = "google/gemini-2.0-flash-001"
 
     database_path: str = "data/laptops.db"
 
