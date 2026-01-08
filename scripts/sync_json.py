@@ -53,8 +53,7 @@ def sync_json_file(json_path: Path, dry_run: bool = False) -> SyncResult:
             duration_seconds=time.time() - start_time,
         )
 
-    # min_id = channel_config.last_message_id
-    min_id = 0
+    min_id = channel_config.last_message_id
     logger.info(f"Using min_id={min_id}")
 
     messages = fetcher.fetch_messages_json(

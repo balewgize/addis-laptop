@@ -240,21 +240,6 @@ class Database:
             )
             return session.exec(statement).one()
 
-    # ==================== Bot Compatibility Aliases ====================
-
-    def count(self, active_only: bool = True) -> int:
-        """Alias for count_laptops() - used by bot."""
-        return self.count_laptops(active_only=active_only)
-
-    def get_all(
-        self,
-        limit: int = 100,
-        offset: int = 0,
-        active_only: bool = True,
-    ) -> list[LaptopDB]:
-        """Alias for get_laptops() - used by bot."""
-        return self.get_laptops(limit=limit, offset=offset, active_only=active_only)
-
     # ==================== Channel Operations ====================
 
     def add_channel(self, config: ChannelConfig) -> ChannelConfigDB:
