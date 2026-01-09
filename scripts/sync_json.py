@@ -23,7 +23,7 @@ from core.config import setup_logging
 from core.database import Database
 from core.extractor import LaptopExtractor
 from core.telegram import TelegramFetcher
-from core.schemas import SyncResult
+from core.schemas import SyncResult, ChannelConfig
 
 logger = setup_logging()
 
@@ -43,15 +43,24 @@ def sync_json_file(json_path: Path, dry_run: bool = False) -> SyncResult:
     # Get min_id to avoid duplicates
     channel_config = db.get_channel(channel)
     if not channel_config:
-        logger.error(f"Channel not found in database: {channel}")
-        return SyncResult(
-            channel=channel,
-            messages_fetched=0,
-            laptops_extracted=0,
-            errors=1,
-            skipped=0,
-            duration_seconds=time.time() - start_time,
-        )
+        logger.info(f"Channel not found in database, adding: {channel}")
+        name = input("Enter display name for this channel: ").strip()
+        if not name:
+            logger.warning("No name provided, using username as display name")
+            name = json_path.stem
+
+        channel_config = db.add_channel(ChannelConfig(channel=channel, name=name))
+        if not channel_config:
+            logger.error(f"Failed to add channel: {channel}")
+            return SyncResult(
+                channel=channel,
+                messages_fetched=0,
+                laptops_extracted=0,
+                errors=1,
+                skipped=0,
+                duration_seconds=time.time() - start_time,
+            )
+        logger.info(f"Channel added successfully: {channel}")
 
     min_id = channel_config.last_message_id
     logger.info(f"Using min_id={min_id}")
