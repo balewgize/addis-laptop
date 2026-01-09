@@ -7,6 +7,7 @@ services:
     command: python -m bot.core
     volumes:
       - ./data:/app/data
+      - ./logs:/app/logs
       - ./laptop_scraper_session.session:/app/laptop_scraper_session.session
 
   user-ui:

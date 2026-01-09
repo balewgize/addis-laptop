@@ -41,6 +41,7 @@ Examples:
 • "Gaming laptop 16GB RAM"
 • "Cheap laptop for student"
         """
+        await self.log_user(update.effective_user.id)
         await update.message.reply_text(welcome, parse_mode="Markdown")
         logger.info(f"User {update.effective_user.id} started bot")
 
@@ -120,3 +121,11 @@ Examples:
     async def handle_noop(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle disabled button clicks."""
         await update.callback_query.answer()
+
+    async def log_user(user_id):
+        """Log anonymous user ID to file."""
+        with open("users.txt", "a+") as f:
+            f.seek(0)
+            existing = f.read().splitlines()
+            if str(user_id) not in existing:
+                f.write(f"{user_id}\n")
