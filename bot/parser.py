@@ -25,8 +25,8 @@ Return JSON with these fields (use null if not mentioned):
 
 Examples:
 - "Dell under 100k" → {{"brand": "Dell", "max_price": 100000}}
-- "Gaming laptop 16GB RAM" → {{"use_case": "gaming", "min_ram": 16}}
 - "15 inch laptop for programming" → {{"min_screen": 15, "use_case": "programming"}}
+- "ጌሚንግ ላፕቶፕ 16GB ራም" → {{"use_case": "gaming", "min_ram": 16}}
 
 Query: {query}
 
