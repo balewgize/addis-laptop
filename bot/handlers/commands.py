@@ -5,6 +5,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from core.config import get_settings
 from core.database import Database
 from core.schemas import LaptopDB
 from bot.constants import ITEMS_PER_PAGE
@@ -122,9 +123,10 @@ Examples:
         """Handle disabled button clicks."""
         await update.callback_query.answer()
 
-    async def log_user(user_id):
+    async def log_user(self, user_id):
         """Log anonymous user ID to file."""
-        with open("users.txt", "a+") as f:
+        log_dir = get_settings().log_dir
+        with open(f"{log_dir}/users.txt", "a+") as f:
             f.seek(0)
             existing = f.read().splitlines()
             if str(user_id) not in existing:

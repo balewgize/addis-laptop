@@ -3,6 +3,7 @@
 import logging
 import sys
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -31,6 +32,8 @@ class Settings(BaseSettings):
     admin_password: str = "admin"  # Change in production!
 
     log_level: str = "INFO"
+    log_dir: Path = Path("logs")
+    log_dir.mkdir(exist_ok=True)
 
     # Sync settings
     default_sync_days: int = 90  # How far back to scrape
@@ -49,7 +52,6 @@ def get_settings() -> Settings:
 
 def setup_logging(level: str | None = None) -> logging.Logger:
     """Configure logging for the application (console + file)."""
-    from pathlib import Path
     from logging.handlers import RotatingFileHandler
 
     log_level = level or get_settings().log_level
@@ -63,9 +65,7 @@ def setup_logging(level: str | None = None) -> logging.Logger:
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
 
-    # File handler (rotating: 5MB max, keep 5 backups)
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
+    log_dir = get_settings().log_dir
 
     file_handler = RotatingFileHandler(
         filename=log_dir / "app.log",
