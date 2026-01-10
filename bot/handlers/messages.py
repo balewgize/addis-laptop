@@ -7,7 +7,6 @@ from telegram.ext import ContextTypes, ConversationHandler
 
 from core.database import Database
 from core.recommender import LLMRecommender
-from core.schemas import LaptopDB
 from bot.constants import ITEMS_PER_PAGE
 from bot.parser import QueryParser, ParsedQuery
 from bot.utils import (
@@ -31,17 +30,32 @@ class MessageHandlers:
         self.query_parser = query_parser
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle free-form natural language queries."""
+        """Handle free-form natural language queries (text or transcribed voice)."""
         text = update.message.text
-        logger.info(f"User {update.effective_user.id}: {text}")
+        user_id = update.effective_user.id
+
+        if not text or not text.strip():
+            await update.message.reply_text("Please send a text or voice message.")
+            return
+
+        logger.info(f"User {user_id}: {text}")
 
         await update.message.reply_text("🔍 Understanding your request...")
 
         parsed = self.query_parser.parse(text)
 
         # Decide: recommendation or search
+        recommend_keywords = [
+            "recommend",
+            "suggest",
+            "best",
+            "good for",
+            "ጥሩ",
+            "የሚመከር",
+            "ምርጥ",
+        ]
         is_recommend = parsed.use_case is not None or any(
-            w in text.lower() for w in ["recommend", "suggest", "best", "good for"]
+            w in text.lower() for w in recommend_keywords
         )
 
         if is_recommend:
@@ -59,9 +73,9 @@ class MessageHandlers:
         # Filter by screen in memory
         if parsed.min_screen:
             laptops = [
-                l
-                for l in laptops
-                if l.screen_size and l.screen_size >= parsed.min_screen
+                lap
+                for lap in laptops
+                if lap.screen_size and lap.screen_size >= parsed.min_screen
             ]
 
         if not laptops:
@@ -103,7 +117,7 @@ class MessageHandlers:
         """Handle natural language recommendation."""
         request = parsed.to_recommendation_request()
 
-        await update.message.reply_text("🤖 Finding best options...")
+        await update.message.reply_text("🤖 Finding best laptops...")
 
         response = self.recommender.recommend(request, limit=3)
 

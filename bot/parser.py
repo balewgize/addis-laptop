@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 QUERY_PARSER_PROMPT = """Extract laptop search parameters from this query.
 
+The query can be in English, Amharic, or a mix of both.
+
 Return JSON with these fields (use null if not mentioned):
 - brand: string or null (Dell, HP, Asus, Lenovo, Apple, etc.)
 - max_price: number or null (in ETB - Ethiopian Birr)

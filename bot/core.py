@@ -18,11 +18,13 @@ from core.recommender import LLMRecommender
 
 from bot.constants import ConvState
 from bot.parser import QueryParser
+from bot.transcriber import Transcriber
 from bot.handlers import (
     CommandHandlers,
     SearchHandlers,
     RecommendHandlers,
     MessageHandlers,
+    VoiceHandler,
 )
 
 logger = setup_logging()
@@ -45,6 +47,16 @@ class LaptopBot:
             self.db, self.recommender, self.query_parser
         )
 
+        # Optional: voice search
+        self.transcriber = None
+        self.voice_handler = None
+        if self.settings.elevenlabs_api_key != "":
+            self.transcriber = Transcriber(self.settings)
+            self.voice_handler = VoiceHandler(
+                self.transcriber, self.message_handlers.handle_message
+            )
+            logger.info("Voice search enabled")
+
         logger.info("LaptopBot initialized")
 
     def run(self):
@@ -54,7 +66,6 @@ class LaptopBot:
 
         app = Application.builder().token(self.settings.telegram_bot_token).build()
 
-        # Register all handlers
         self._register_handlers(app)
 
         logger.info("Starting bot...")
@@ -139,7 +150,7 @@ class LaptopBot:
         app.add_handler(search_conv)
         app.add_handler(recommend_conv)
 
-        # 3. Pagination callbacks (outside conversations)
+        # 3. Pagination callbacks
         app.add_handler(
             CallbackQueryHandler(
                 self.command_handlers.browse_pagination, pattern="^browse:"
@@ -156,7 +167,13 @@ class LaptopBot:
             CallbackQueryHandler(self.command_handlers.handle_noop, pattern="^noop$")
         )
 
-        # 5. Natural language handler (must be last)
+        # 5. Voice handler (optional)
+        if self.voice_handler:
+            app.add_handler(
+                MessageHandler(filters.VOICE, self.voice_handler.handle_voice)
+            )
+
+        # 6. Natural language handler (must be last)
         app.add_handler(
             MessageHandler(
                 filters.TEXT & ~filters.COMMAND, self.message_handlers.handle_message
@@ -167,6 +184,8 @@ class LaptopBot:
         """Cleanup resources."""
         self.query_parser.close()
         self.recommender.close()
+        if self.transcriber:
+            self.transcriber.close()
 
 
 def run_bot():

@@ -35,12 +35,14 @@ Find the best laptop deals from Ethiopian Telegram channels!
 /help - Show this message
 
 **Quick Search:**
-Just type what you're looking for!
+Just type what you're looking for. OR
+
+Send a short voice message (Amharic or English)
 
 Examples:
 • "Dell laptop under 100k"
-• "Gaming laptop 16GB RAM"
-• "Cheap laptop for student"
+• "HP laptop 16GB RAM"
+• "ለቢሮ ሥራ የሚሆኑ ላፕቶፖች፣ ከ50ሺ በታች"
         """
         await self.log_user(update.effective_user.id)
         await update.message.reply_text(welcome, parse_mode="Markdown")
