@@ -219,3 +219,4 @@ __marimo__/
 *.session
 data/laptops.db
 data/exports/*
+logs/*
