@@ -9,7 +9,11 @@ A Telegram bot that scrapes laptop listings from tech channels, extracts specs u
 - **Browse** - View latest laptop listings with pagination
 - **Search** - Filter by brand, price, RAM, screen size
 - **AI Recommendations** - Get personalized suggestions based on use case and budget
-- **Natural Language** - Just type what you're looking for: "Dell laptop under 100k"
+- **Natural Language** - Just type what you're looking for: 
+  - "Dell laptop under 100k"
+  - "HP laptop 16GB RAM"
+  - "ለቢሮ ሥራ የሚሆኑ ላፕቶፖች፣ ከ50ሺ በታች"
+- **Voice Search** - Send a short voice message in _English_ or _አማርኛ_
 
 ## Architecture
 
@@ -54,6 +58,9 @@ TELEGRAM_API_ID=your_api_id
 TELEGRAM_API_HASH=your_api_hash
 TELEGRAM_BOT_TOKEN=your_bot_token
 OPENROUTER_API_KEY=your_openrouter_key
+
+# Optional (for voice search)
+ELEVENLABS_API_KEY=your_elevenlabs_key
 ```
 
 ### Data Extraction
