@@ -1,19 +1,18 @@
 # Addis Laptop
 
-Find the best laptop deals from Telegram channels.
-
-A Telegram bot that scrapes laptop listings from tech channels, extracts specs using LLM, and provides intelligent search and AI-powered recommendations.
+Addis Laptop is a Python-based Telegram bot and web app that aggregates laptop listings from Ethiopian Telegram tech channels, extracts specs using LLMs, and provides intelligent search and recommendations.
 
 ## Features
 
-- **Browse** - View latest laptop listings with pagination
-- **Search** - Filter by brand, price, RAM, screen size
-- **AI Recommendations** - Get personalized suggestions based on use case and budget
-- **Natural Language** - Just type what you're looking for: 
-  - "Dell laptop under 100k"
-  - "HP laptop 16GB RAM"
-  - "ለቢሮ ሥራ የሚሆኑ ላፕቶፖች፣ ከ50ሺ በታች"
-- **Voice Search** - Send a short voice message in _English_ or _አማርኛ_
+- Browse latest laptop listings (pagination)
+- Filter by brand, price, RAM, screen size
+- AI-powered recommendations by use case and budget
+- Natural language search (English & አማርኛ)
+    - "Dell laptop under 100k"
+    - "Leonovo laptop 16GB RAM"
+    - "ለቢሮ ሥራ የሚሆኑ ላፕቶፖች፣ ከ50ሺ በታች"
+- Voice search (English & አማርኛ)
+
 
 ## Architecture
 
@@ -71,8 +70,11 @@ ELEVENLABS_API_KEY=your_elevenlabs_key
 # Export messages from Telegram Desktop (JSON format)
 # Place the JSON file in the data/exports directory
 # Filename must be channel username without @ symbol
-# e.g. data/exports/username.json
+# e.g. data/exports/channel_username.json
 python -m scripts.sync_json
+
+# Sync specific channel
+python -m scripts.sync_json data/exports/channel_username.json
 
 # Option 2: Using Telethong Sync channels (scrape laptop listings)
 # Note: It will require you to login to your Telegram account
@@ -105,7 +107,7 @@ docker compose up -d --build
 # streamlit run web/admin.py
 ```
 
-### Accessing 
+### Accessing locally
 
 - Telegram Bot: [@your_bot_user_name](https://t.me/your_bot_user_name)
 - Web User: [http://localhost:8501/](http://localhost:8501/)
@@ -115,43 +117,25 @@ docker compose up -d --build
 ## Project Structure
 
 ```
-├── bot/                  # Telegram bot
-│   ├── core.py          # Bot entry point
-│   ├── handlers/        # Command & message handlers
-│   ├── parser.py        # NL query parser
-│   └── utils/           # Formatting, keyboards, pagination
-├── core/                 # Core modules
-│   ├── database.py      # SQLite operations
-│   ├── extractor.py     # LLM spec extraction
-│   ├── recommender.py   # AI recommendations
-│   ├── schemas.py       # Data models
-│   └── telegram.py      # Channel scraper
-├── scripts/             # CLI utilities
-│   └── sync_channels.py # Scrape channels
-└── data/
-    └── laptops.db       # SQLite database
+Project Structure
+addis-laptop/
+├── bot/          # Telegram bot (handlers, parsing, voice)
+├── core/         # Business logic (scraping, extraction, recommendations)
+├── web/          # Streamlit apps (user + admin)
+├── scripts/      # CLI utilities for syncing data
+├── data/         # SQLite database
+└── tests/        # Test suite
 ```
-
-## Bot Commands
-
-| Command | Description |
-|---------|-------------|
-| `/start` | Welcome message |
-| `/browse` | Browse latest laptops |
-| `/search` | Guided search with filters |
-| `/recommend` | AI-powered recommendations |
-| `/cancel` | Cancel current operation |
-| `/help` | Show help |
-
-Or just type naturally: *"Gaming laptop with 16GB RAM under 150k"*
 
 ## Tech Stack
 
-- **Bot Framework**: python-telegram-bot
-- **Scraping**: Telethon
-- **Database**: SQLite + SQLModel
-- **LLM**: Claude via OpenRouter
-- **Validation**: Pydantic
+- Language: Python 3.11+
+- Bot: python-telegram-bot
+- Web: Streamlit
+- Scraping: Telethon (Telegram API)
+- Database: SQLite + SQLModel
+- LLM: OpenRouter API (Claude/Gemini)
+- Deployment: Docker + Caddy
 
 ## License
 
