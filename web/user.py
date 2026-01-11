@@ -13,9 +13,9 @@ from core.utils import format_source_link, format_phone_link
 logger = setup_logging()
 
 st.set_page_config(
-    page_title="Laptop Finder Ethiopia",
+    page_title="Addis Laptop",
     page_icon="💻",
-    layout="wide",
+    # layout="wide",
 )
 
 

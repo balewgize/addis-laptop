@@ -18,9 +18,9 @@ logger = setup_logging()
 settings = get_settings()
 
 st.set_page_config(
-    page_title="Admin - Laptop Scraper",
+    page_title="Admin - Addis Laptop",
     page_icon="⚙️",
-    layout="wide",
+    # layout="wide",
 )
 
 
