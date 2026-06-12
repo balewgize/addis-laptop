@@ -133,7 +133,7 @@ class LLMRecommender:
             max_price=request.budget_max,
             min_ram=request.min_ram,
             min_screen=request.min_screen,
-            posted_within_days=90,
+            # posted_within_days defaults to None (search all time)
         )
 
         laptops = self.db.search_laptops(filters)

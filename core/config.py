@@ -26,7 +26,8 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     llm_model: str = "google/gemini-3-flash-preview"
 
-    elevenlabs_api_key: str = ""  # STT
+    elevenlabs_api_key: str = ""  # STT (fallback)
+    hasab_ai_api_key: str = ""  # STT (preferred)
     max_audio_duration_seconds: int = 10  # voice message duration
 
     database_path: str = "data/laptops.db"

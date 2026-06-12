@@ -127,11 +127,16 @@ class Database:
         limit: int = 100,
         offset: int = 0,
         active_only: bool = True,
+        max_age_days: int = 2,
     ) -> list[LaptopDB]:
-        """Get laptops with pagination."""
+        """Get laptops with pagination. Filters by posted_at within specified days."""
         with Session(self.engine) as session:
             statement = select(LaptopModel)
 
+            # Filter by posted_at (last N days)
+            cutoff = datetime.utcnow() - timedelta(days=max_age_days)
+            statement = statement.where(LaptopModel.posted_at >= cutoff)
+            
             if active_only:
                 statement = statement.where(LaptopModel.is_active == True)
 

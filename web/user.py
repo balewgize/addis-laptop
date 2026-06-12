@@ -75,7 +75,7 @@ with tab1:
         max_price=filter_max_price if filter_max_price > 0 else None,
         min_ram=filter_min_ram,
         min_storage=filter_min_storage,
-        posted_within_days=90,
+        # posted_within_days defaults to None (search all time)
     )
 
     # Search

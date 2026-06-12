@@ -141,7 +141,7 @@ class SearchFilters(BaseModel):
     min_storage: int | None = None
     condition: str | None = None
     channel: str | None = None
-    posted_within_days: int | None = 90
+    posted_within_days: int | None = None
 
 
 # Analytics schemas
